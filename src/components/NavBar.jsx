@@ -67,7 +67,7 @@ export default function NavBar() {
 	};
 
 	return (
-		<nav className="flex justify-between items-center py-6 px-4 md:px-8 w-full">
+		<nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center py-6 px-4 md:px-8 w-full">
 			<div className="flex items-center">
 				<a
 					href="#"
@@ -113,26 +113,26 @@ export default function NavBar() {
 
 			{/* Mobile Menu Button */}
 			<button
-				className="md:hidden flex flex-col justify-center items-center w-10 h-10 relative focus:outline-none"
+				className="md:hidden flex flex-col justify-center items-center w-10 h-10 relative focus:outline-none z-[990]"
 				onClick={toggleMenu}
 				aria-expanded={isMenuOpen}
 				aria-label={isMenuOpen ? "Close menu" : "Open menu"}
 			>
 				<span
-					className={`block w-6 h-0.5 rounded-sm bg-foreground transition-transform duration-300 ease-in-out ${
-						isMenuOpen ? "rotate-45 translate-y-1" : ""
+					className={`block w-6 h-0.5 rounded-sm bg-foreground absolute transition-all duration-300 ease-in-out ${
+						isMenuOpen ? "rotate-45" : "translate-y-[-4px]"
 					}`}
 					style={{ backgroundColor: "var(--foreground)" }}
 				/>
 				<span
-					className={`block w-6 h-0.5 rounded-sm bg-foreground mt-1.5 transition-opacity duration-300 ease-in-out ${
+					className={`block w-6 h-0.5 rounded-sm bg-foreground absolute transition-all duration-300 ease-in-out ${
 						isMenuOpen ? "opacity-0" : "opacity-100"
 					}`}
 					style={{ backgroundColor: "var(--foreground)" }}
 				/>
 				<span
-					className={`block w-6 h-0.5 rounded-sm bg-foreground mt-1.5 transition-transform duration-300 ease-in-out ${
-						isMenuOpen ? "-rotate-45 -translate-y-1.5" : ""
+					className={`block w-6 h-0.5 rounded-sm bg-foreground absolute transition-all duration-300 ease-in-out ${
+						isMenuOpen ? "-rotate-45" : "translate-y-[4px]"
 					}`}
 					style={{ backgroundColor: "var(--foreground)" }}
 				/>
@@ -142,19 +142,19 @@ export default function NavBar() {
 			<AnimatePresence>
 				{isMenuOpen && (
 					<motion.div
-						initial={{ opacity: 0, x: "100%" }}
-						animate={{ opacity: 1, x: 0 }}
-						exit={{ opacity: 0, x: "100%" }}
-						transition={{ type: "tween", duration: 0.3 }}
-						className="fixed inset-0 z-50 md:hidden"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						transition={{ duration: 0.3 }}
+						className="fixed inset-0 z-[980] md:hidden"
 					>
 						<div
-							className="absolute inset-0 bg-background opacity-95"
+							className="absolute inset-0 bg-background"
 							style={{ backgroundColor: "var(--background)" }}
 							onClick={() => setIsMenuOpen(false)}
 						/>
 						<motion.nav
-							className="absolute right-0 top-0 bottom-0 w-3/4 max-w-sm pt-20 px-8 z-10 shadow-xl flex flex-col"
+							className="absolute inset-0 pt-20 px-8 z-[985] flex flex-col"
 							style={{ backgroundColor: "var(--background)" }}
 						>
 							<div className="flex flex-col gap-6">

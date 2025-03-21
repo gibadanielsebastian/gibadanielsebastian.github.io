@@ -1,12 +1,13 @@
 "use client";
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ErrorBoundary } from "react-error-boundary";
 
-// Dynamic imports with lazy loading
-const Hero = lazy(() => import("@/components/pages/Hero"));
-const About = lazy(() => import("@/components/pages/About"));
-const Portfolio = lazy(() => import("@/components/pages/Portofolio"));
-const Contact = lazy(() => import("@/components/pages/Contact"));
+// Direct imports instead of lazy loading
+import Hero from "@/components/pages/Hero";
+import About from "@/components/pages/About";
+import Portfolio from "@/components/pages/Portofolio";
+import Contact from "@/components/pages/Contact";
 
 // Loading component
 function PageLoader() {
@@ -17,10 +18,29 @@ function PageLoader() {
 	);
 }
 
+// Error fallback component
+function ErrorFallback({ error, resetErrorBoundary }) {
+	return (
+		<div className="flex flex-col justify-center items-center w-full h-full min-h-[50vh] p-6 text-center">
+			<div className="text-primary text-2xl mb-4">Something went wrong</div>
+			<div className="mb-4 text-foreground/70">
+				{error.message || "Failed to load content"}
+			</div>
+			<button
+				onClick={resetErrorBoundary}
+				className="px-4 py-2 bg-primary text-background rounded-md hover:opacity-90 transition-opacity"
+			>
+				Try again
+			</button>
+		</div>
+	);
+}
+
 export default function ClientContent() {
 	const [currentHash, setCurrentHash] = useState("");
 	const [prevHash, setPrevHash] = useState("");
 	const [isScrolling, setIsScrolling] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
 
 	// Array of all section IDs
 	const sections = ["", "about", "portofolio", "contact"];
@@ -45,100 +65,74 @@ export default function ClientContent() {
 		};
 	}, [currentHash]);
 
-	// Mouse wheel scrolling
+	// Debounced scroll handler
+	const handleScroll = (direction) => {
+		if (isScrolling || isLoading) return;
+
+		setIsScrolling(true);
+
+		const currentIndex = sections.indexOf(currentHash);
+		const effectiveIndex = currentIndex !== -1 ? currentIndex : 0;
+
+		// Calculate new index
+		let newIndex = effectiveIndex + direction;
+
+		// Keep index within bounds
+		newIndex = Math.max(0, Math.min(sections.length - 1, newIndex));
+
+		// Only change if we're moving to a different section
+		if (newIndex !== effectiveIndex) {
+			// Set loading state
+			setIsLoading(true);
+
+			// Update the URL hash which will trigger the hashchange event
+			const newHash = newIndex === 0 ? "" : sections[newIndex];
+			window.location.hash = newHash;
+
+			console.log("Navigating to section:", newHash || "home");
+		}
+
+		// Release scrolling lock after animation duration
+		setTimeout(() => {
+			setIsScrolling(false);
+			setIsLoading(false);
+		}, 800);
+	};
+
+	// Mouse wheel event handler
 	useEffect(() => {
-		// Define the scroll handler
-		const handleScroll = (e) => {
-			// Prevent default scroll
+		const wheelHandler = (e) => {
 			e.preventDefault();
-
-			if (isScrolling) return;
-
-			setIsScrolling(true);
-
-			const currentIndex = sections.indexOf(currentHash);
-			const effectiveIndex = currentIndex !== -1 ? currentIndex : 0;
-
-			// Determine scroll direction
-			const scrollDirection = e.deltaY > 0 ? 1 : -1;
-
-			// Calculate new index
-			let newIndex = effectiveIndex + scrollDirection;
-
-			// Keep index within bounds
-			newIndex = Math.max(0, Math.min(sections.length - 1, newIndex));
-
-			// Only change if we're moving to a different section
-			if (newIndex !== effectiveIndex) {
-				// Update the URL hash which will trigger the hashchange event
-				const newHash = newIndex === 0 ? "" : sections[newIndex];
-				window.location.hash = newHash;
-
-				console.log("Scrolling to section:", newHash || "home");
-			}
-
-			// Debounce scrolling to prevent rapid changes
-			setTimeout(() => {
-				setIsScrolling(false);
-			}, 800); // Adjust timing based on your transition duration
+			const direction = e.deltaY > 0 ? 1 : -1;
+			handleScroll(direction);
 		};
 
-		// Add wheel event listener for scroll
-		window.addEventListener("wheel", handleScroll, { passive: false });
+		window.addEventListener("wheel", wheelHandler, { passive: false });
 
 		return () => {
-			window.removeEventListener("wheel", handleScroll);
+			window.removeEventListener("wheel", wheelHandler);
 		};
-	}, [currentHash, isScrolling, sections]);
+	}, [currentHash, isScrolling, isLoading]);
 
-	// Touch support for mobile devices
+	// Touch event handlers for mobile
 	useEffect(() => {
 		let touchStartY = 0;
-		const touchThreshold = 50; // Minimum swipe distance to trigger page change
+		const touchThreshold = 50;
 
 		const handleTouchStart = (e) => {
 			touchStartY = e.touches[0].clientY;
 		};
 
 		const handleTouchEnd = (e) => {
-			if (isScrolling) return;
-
 			const touchEndY = e.changedTouches[0].clientY;
 			const touchDiff = touchEndY - touchStartY;
 
-			// Only proceed if swipe is long enough
 			if (Math.abs(touchDiff) < touchThreshold) return;
 
-			setIsScrolling(true);
-
-			const currentIndex = sections.indexOf(currentHash);
-			const effectiveIndex = currentIndex !== -1 ? currentIndex : 0;
-
-			// Determine swipe direction (negative for swipe up, positive for swipe down)
-			const swipeDirection = touchDiff < 0 ? 1 : -1;
-
-			// Calculate new index
-			let newIndex = effectiveIndex + swipeDirection;
-
-			// Keep index within bounds
-			newIndex = Math.max(0, Math.min(sections.length - 1, newIndex));
-
-			// Only change if we're moving to a different section
-			if (newIndex !== effectiveIndex) {
-				// Update the URL hash which will trigger the hashchange event
-				const newHash = newIndex === 0 ? "" : sections[newIndex];
-				window.location.hash = newHash;
-
-				console.log("Swiping to section:", newHash || "home");
-			}
-
-			// Debounce to prevent rapid changes
-			setTimeout(() => {
-				setIsScrolling(false);
-			}, 800);
+			const direction = touchDiff < 0 ? 1 : -1;
+			handleScroll(direction);
 		};
 
-		// Add touch event listeners
 		window.addEventListener("touchstart", handleTouchStart, { passive: true });
 		window.addEventListener("touchend", handleTouchEnd, { passive: true });
 
@@ -146,14 +140,27 @@ export default function ClientContent() {
 			window.removeEventListener("touchstart", handleTouchStart);
 			window.removeEventListener("touchend", handleTouchEnd);
 		};
-	}, [currentHash, isScrolling, sections]);
+	}, [currentHash, isScrolling, isLoading]);
 
-	// Logging for debugging
+	// Keyboard navigation
 	useEffect(() => {
-		console.log("Current section:", currentHash || "home");
-	}, [currentHash]);
+		const keyHandler = (e) => {
+			if (isScrolling || isLoading) return;
 
-	// Animation variants for page transitions
+			if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+				e.preventDefault();
+				handleScroll(1);
+			} else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+				e.preventDefault();
+				handleScroll(-1);
+			}
+		};
+
+		window.addEventListener("keydown", keyHandler);
+		return () => window.removeEventListener("keydown", keyHandler);
+	}, [currentHash, isScrolling, isLoading]);
+
+	// Animation variants
 	const variants = {
 		initial: (direction) => ({
 			opacity: 0,
@@ -179,38 +186,14 @@ export default function ClientContent() {
 
 	// Determine direction of navigation
 	const getDirection = () => {
-		const hashOrder = ["", "about", "portofolio", "contact"];
-		const prevIndex = hashOrder.indexOf(prevHash);
-		const currentIndex = hashOrder.indexOf(currentHash);
+		const prevIndex = sections.indexOf(prevHash);
+		const currentIndex = sections.indexOf(currentHash);
 		return currentIndex > prevIndex ? 1 : -1;
 	};
 
-	// Render content based on hash
-	const renderContent = () => {
-		const direction = getDirection();
-
-		return (
-			<AnimatePresence mode="wait" custom={direction}>
-				<motion.div
-					key={currentHash || "home"}
-					custom={direction}
-					variants={variants}
-					initial="initial"
-					animate="animate"
-					exit="exit"
-					className="w-full min-h-[50vh]"
-				>
-					<Suspense fallback={<PageLoader />}>
-						{getComponentForHash(currentHash)}
-					</Suspense>
-				</motion.div>
-			</AnimatePresence>
-		);
-	};
-
-	// Helper function to get the component for current hash
-	const getComponentForHash = (hash) => {
-		switch (hash) {
+	// Render the appropriate component based on the current hash
+	const renderComponent = () => {
+		switch (currentHash) {
 			case "about":
 				return <About />;
 			case "portofolio":
@@ -222,5 +205,28 @@ export default function ClientContent() {
 		}
 	};
 
-	return renderContent();
+	// Get the component key for AnimatePresence
+	const getComponentKey = () => currentHash || "home";
+
+	return (
+		<ErrorBoundary
+			FallbackComponent={ErrorFallback}
+			onReset={() => window.location.reload()}
+		>
+			<AnimatePresence mode="wait" custom={getDirection()}>
+				<motion.div
+					key={getComponentKey()}
+					custom={getDirection()}
+					variants={variants}
+					initial="initial"
+					animate="animate"
+					exit="exit"
+					className="w-full min-h-[50vh]"
+					onAnimationComplete={() => setIsLoading(false)}
+				>
+					{isLoading ? <PageLoader /> : renderComponent()}
+				</motion.div>
+			</AnimatePresence>
+		</ErrorBoundary>
+	);
 }

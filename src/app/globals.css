@@ -153,3 +153,19 @@ body {
 	overflow: hidden;
 	position: relative;
 }
+
+/* Mobile-specific fixes */
+@media (max-width: 480px) {
+	button,
+	a {
+		cursor: default; /* Better touch experience */
+	}
+
+	/* Improve tap target sizes */
+	nav a,
+	button,
+	.content-area a {
+		padding: 0.5rem;
+		margin: -0.5rem;
+	}
+}
