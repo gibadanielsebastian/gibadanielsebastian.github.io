@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function SideBar() {
 	const [activeSection, setActiveSection] = useState("");
@@ -52,9 +53,8 @@ export default function SideBar() {
 			>
 				{/* Vertical line - make sure it spans the full height */}
 				<div
-					className="absolute h-full w-0.5 opacity-70"
+					className="absolute h-full w-0.5 opacity-70 bg-primary"
 					style={{
-						background: "var(--primary)",
 						left: "50%",
 						transform: "translateX(-50%)",
 					}}
@@ -80,9 +80,14 @@ export default function SideBar() {
 								transform: "translate(-50%, -50%)",
 							}}
 						>
-							<a
+							<Link
 								href={`#${section.id}`}
 								aria-label={`Go to ${section.label} section`}
+								onClick={(e) => {
+									e.preventDefault();
+									window.location.hash = section.id;
+								}}
+								scroll={false}
 							>
 								<motion.div
 									initial={false}
@@ -105,7 +110,7 @@ export default function SideBar() {
 									}}
 									aria-hidden="true"
 								/>
-							</a>
+							</Link>
 							<span className="sr-only">{`${section.label} section ${
 								isActive ? "- current section" : ""
 							}`}</span>

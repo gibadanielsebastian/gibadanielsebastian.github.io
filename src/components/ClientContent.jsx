@@ -1,9 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ErrorBoundary } from "react-error-boundary";
 
-// Direct imports instead of lazy loading
+// Direct imports
 import Hero from "@/components/pages/Hero";
 import About from "@/components/pages/About";
 import Portfolio from "@/components/pages/Portofolio";
@@ -52,6 +52,7 @@ export default function ClientContent() {
 			const hash = window.location.hash.substring(1);
 			setPrevHash(currentHash);
 			setCurrentHash(hash);
+			setIsLoading(false);
 		};
 
 		// Set initial hash
@@ -70,6 +71,7 @@ export default function ClientContent() {
 		if (isScrolling || isLoading) return;
 
 		setIsScrolling(true);
+		setIsLoading(true);
 
 		const currentIndex = sections.indexOf(currentHash);
 		const effectiveIndex = currentIndex !== -1 ? currentIndex : 0;
@@ -82,20 +84,18 @@ export default function ClientContent() {
 
 		// Only change if we're moving to a different section
 		if (newIndex !== effectiveIndex) {
-			// Set loading state
-			setIsLoading(true);
-
 			// Update the URL hash which will trigger the hashchange event
 			const newHash = newIndex === 0 ? "" : sections[newIndex];
 			window.location.hash = newHash;
-
-			console.log("Navigating to section:", newHash || "home");
+		} else {
+			// If not changing section, still need to reset states
+			setIsLoading(false);
+			setIsScrolling(false);
 		}
 
 		// Release scrolling lock after animation duration
 		setTimeout(() => {
 			setIsScrolling(false);
-			setIsLoading(false);
 		}, 800);
 	};
 

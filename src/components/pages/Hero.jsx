@@ -2,6 +2,7 @@
 import { instrumentSans } from "@/app/fonts";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 export default function Hero() {
 	const [isClient, setIsClient] = useState(false);
@@ -15,11 +16,11 @@ export default function Hero() {
 	const content = (
 		<div className="max-w-4xl w-full px-2 sm:px-0">
 			<h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-				Hi, I'm <span style={{ color: "var(--primary)" }}>Giba Daniel</span>
+				Hi, I'm <span className="text-primary">Giba Daniel</span>
 			</h1>
 
 			<div className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-6">
-				I'm a <span style={{ color: "var(--primary)" }}>Web Developer</span>
+				I'm a <span className="text-primary">Web Developer</span>
 			</div>
 
 			<p className="text-base sm:text-lg opacity-80 mb-8 sm:mb-10 max-w-2xl">
@@ -28,26 +29,28 @@ export default function Hero() {
 			</p>
 
 			<div className="flex flex-wrap gap-3 sm:gap-4">
-				<a
+				<Link
 					href="#portofolio"
-					className="px-4 sm:px-6 py-2 sm:py-3 rounded text-sm sm:text-base font-medium transition-all"
-					style={{
-						backgroundColor: "var(--primary)",
-						color: "var(--background)",
+					className="px-4 sm:px-6 py-2 sm:py-3 rounded text-sm sm:text-base font-medium transition-all bg-primary text-background"
+					onClick={(e) => {
+						e.preventDefault();
+						window.location.hash = "portofolio";
 					}}
+					scroll={false}
 				>
 					View My Work
-				</a>
-				<a
+				</Link>
+				<Link
 					href="#contact"
-					className="px-4 sm:px-6 py-2 sm:py-3 rounded text-sm sm:text-base font-medium transition-all border-2"
-					style={{
-						borderColor: "var(--primary)",
-						color: "var(--foreground)",
+					className="px-4 sm:px-6 py-2 sm:py-3 rounded text-sm sm:text-base font-medium transition-all border-2 border-primary text-foreground hover:bg-primary/10"
+					onClick={(e) => {
+						e.preventDefault();
+						window.location.hash = "contact";
 					}}
+					scroll={false}
 				>
 					Get In Touch
-				</a>
+				</Link>
 			</div>
 		</div>
 	);
